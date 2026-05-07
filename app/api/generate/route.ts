@@ -26,8 +26,14 @@ export async function POST(request: Request) {
       messages: [{ role: "user", content: `${topic} 주제로 카드뉴스 5장 만들어줘.` }],
     });
 
-    const cardContent = JSON.parse(completion.content[0].text);
+    // content[0]이 텍스트 블록이라는 것을 명시해줍니다.
+const response = completion.content[0];
 
+if (response.type !== 'text') {
+  throw new Error("AI가 텍스트 형식이 아닌 응답을 보냈습니다.");
+}
+
+const cardContent = JSON.parse(response.text);
     await notion.pages.create({
       parent: { database_id: notionDbId! },
       properties: {
