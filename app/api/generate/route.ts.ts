@@ -53,7 +53,6 @@ await notion.pages.create({
         }
     }
 });
-// 교체 끝
 
     return NextResponse.json({ success: true, data: cardContent });
 
