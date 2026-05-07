@@ -16,17 +16,15 @@ export async function POST(request: Request) {
     const completion = await anthropic.messages.create({
       model: "claude-3-5-sonnet-20240620",
       max_tokens: 1500,
-      system: "당신은 카드뉴스 작가입니다. 반드시 JSON 형식으로 응답하세요. { \"cards\": [] } 구조를 사용하세요.",
+      system: "카드뉴스 작가. JSON으로만 응답할 것.",
       messages: [{ role: "user", content: `${topic} 주제로 카드뉴스 5장 만들어줘.` }],
     });
 
-    // 핵심 수정 부분: 'as any'를 사용하여 타입 검사를 강제로 통과시킵니다.
-    const responseBlock = completion.content[0] as any;
-    const responseText = responseBlock.text; 
+    // 핵심: 'as any'를 붙여서 TypeScript의 잔소리를 강제로 끕니다.
+    const firstBlock = completion.content[0] as any;
+    const responseText = firstBlock.text;
 
-    if (!responseText) {
-      throw new Error("AI 응답에서 텍스트를 찾을 수 없습니다.");
-    }
+    if (!responseText) throw new Error("텍스트를 찾을 수 없습니다.");
 
     const cardContent = JSON.parse(responseText);
 
@@ -41,7 +39,6 @@ export async function POST(request: Request) {
     return NextResponse.json({ success: true, data: cardContent });
 
   } catch (error: any) {
-    console.error('Error:', error);
     return NextResponse.json({ success: false, error: error.message }, { status: 500 });
   }
 }
