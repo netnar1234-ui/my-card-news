@@ -26,8 +26,32 @@ export async function POST(request: Request) {
       messages: [{ role: "user", content: `${topic} 주제로 카드뉴스 5장 만들어줘.` }],
     });
 
-    // content[0]이 텍스트 블록이라는 것을 명시해줍니다.
-const response = completion.content[0];
+    // 1. 응답의 첫 번째 블록을 가져옵니다.
+    const firstBlock = completion.content[0];
+
+    // 2. 만약 이 블록이 'text' 타입일 때만 JSON으로 파싱하도록 보호 장치를 만듭니다.
+    let responseText = "";
+    if (firstBlock.type === 'text') {
+     responseText = firstBlock.text;
+    } else {
+     // 텍스트가 아닌 경우(예: ThinkingBlock)에 대한 예외 처리
+     throw new Error("AI가 텍스트 응답을 보내지 않았습니다.");
+    }
+
+    // 3. 추출한 텍스트를 JSON으로 변환합니다.
+    const cardContent = JSON.parse(responseText);
+
+    // 2. 만약 이 블록이 'text' 타입일 때만 JSON으로 파싱하도록 보호 장치를 만듭니다.
+    let responseText = "";
+    if (firstBlock.type === 'text') {
+  responseText = firstBlock.text;
+        } else {
+  // 텍스트가 아닌 경우(예: ThinkingBlock)에 대한 예외 처리
+  throw new Error("AI가 텍스트 응답을 보내지 않았습니다.");
+    }
+
+// 3. 추출한 텍스트를 JSON으로 변환합니다.
+const cardContent = JSON.parse(responseText);
 
 if (response.type !== 'text') {
   throw new Error("AI가 텍스트 형식이 아닌 응답을 보냈습니다.");
