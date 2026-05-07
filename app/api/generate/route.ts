@@ -26,26 +26,27 @@ export async function POST(request: Request) {
       messages: [{ role: "user", content: `${topic} 주제로 카드뉴스 5장 만들어줘.` }],
     });
 
-    // 29번 줄 대체 코드
-const contentBlock = completion.content[0];
+  // 29번 줄 근처 수정
+// 1. 첫 번째 블록을 가져옵니다.
+const firstBlock = completion.content[0];
 
-// 텍스트 블록인지 확인하고 데이터를 안전하게 꺼냅니다.
-let responseText = "";
-if ("text" in contentBlock) {
-  responseText = contentBlock.text;
-} else {
+// 2. 이 블록이 'text' 타입인지 확인합니다 (타입 가드)
+if (firstBlock.type !== 'text') {
   throw new Error("AI가 텍스트 응답을 보내지 않았습니다.");
 }
 
+// 3. 이제 타입스크립트도 firstBlock이 'text' 속성을 가진 것을 확신합니다.
+const responseText = firstBlock.text;
 const cardContent = JSON.parse(responseText);
 
-    await notion.pages.create({
-      parent: { database_id: notionDbId! },
-      properties: {
-        title: { title: [{ text: { content: topic } }] },
-        Content: { rich_text: [{ text: { content: JSON.stringify(cardContent) } }] }
-      }
-    });
+// 4. 노션에 기록할 때도 responseText를 사용합니다.
+await notion.pages.create({
+  parent: { database_id: notionDbId! },
+  properties: {
+    title: { title: [{ text: { content: topic } }] },
+    Content: { rich_text: [{ text: { content: responseText } }] }
+  }
+});
 
     return NextResponse.json({ success: true, data: cardContent });
 
